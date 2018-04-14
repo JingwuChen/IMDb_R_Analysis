@@ -1,6 +1,6 @@
 # IMDb web scrapping and data analysis
 ## 本文采用rvest库爬取IMDb，然后采用ggplot2以及一些必要的统计方法进行数据分析，最后用shiny库进行网页显示
-<<<<<<< HEAD
+
 本文是承接上一篇[shiny_ggplot2 repository](https://github.com/JingwuChen/shiny_ggplot2)而来的，里面有关于rvest的使用方法和ggplot在shiny中应用示例，想进一步了解的可以去看看:smirk::smirk::smirk:
 
 当然这篇也参考了国外一篇rvest IMDb的佳作，[详见](https://www.analyticsvidhya.com/blog/2017/03/beginners-guide-on-web-scraping-in-r-using-rvest-with-hands-on-knowledge/)
