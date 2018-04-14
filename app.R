@@ -5,6 +5,8 @@ ui<-fluidPage(
   
   #  Application title
   titlePanel("IDMb数据爬虫分析演示"),
+  actionButton("github", "github", icon =icon("github", class = "fab fa-github fa-lg", 
+                                              lib = "font-awesome"),onclick ="location.href='https://github.com/JingwuChen/IMDb_R_Analysis';"),
   
   #use the fluidPage to build a bootstrap layout
   fluidRow(
