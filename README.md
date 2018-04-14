@@ -7,6 +7,16 @@
 
 在这里只强调一点关于爬虫的经验，就是如果爬取类似电影(或商品)卡片型的网站,最好就将每个卡片作为一个section，再从每个section里面单独爬取各标签元素内容，这样能够避免某个电影卡片缺失某个元素造成后一个卡片的标签元素上前补位造成爬取的某个变量的所有值错位了。
 
-简单使用`html_nodes()`全部爬取必然造成票房数据错位了，上面的国外那篇博文中采取是手动后期改造，其实按照我上面说法，先怕每个section，然后采用`html_node()`就能爬取到所有元素，缺失某个元素以NA代替了。
+简单使用`html_nodes()`全部爬取必然造成票房数据错位了，上面的国外那篇博文中采取是手动后期改造，其实按照我上面说法，先怕每个section，然后采用`html_node()`就能爬取到所有元素，缺失某个元素以NA代替了。示例如下：
+```R
+#get the each film section
+content<-read_html(url,encoding = "utf-8")
+section_css<-"div.lister-list > div > div.lister-item-content"
+section<-html_nodes(content,css = section_css)
+#notice i here use the html_node,not the html_nodes
+gross_box<-html_node(section,css = "p.sort-num_votes-visible > span:nth-child(5)") %>% html_text()
+```
+
+
 
 
