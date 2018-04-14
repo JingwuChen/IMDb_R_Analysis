@@ -6,13 +6,14 @@ ui<-fluidPage(
   #  Application title
   titlePanel("IDMb数据爬虫分析演示"),
   
-  # Sidebar with sliders that demonstrate various available options
+  #use the fluidPage to build a bootstrap layout
   fluidRow(
     column(4,
   wellPanel(
     sliderInput("integer", "数据集包含的电影数(从IMDb排名第一倒着数):", 
                 min=50, max=5000, value=100),
     br(),
+    #set a option for user to choose whether to display facet
     radioButtons("isFacet","Fig.1 电影时长 vs 评分分面",list("否"="no","是"="yes"
       
     )),
@@ -23,14 +24,14 @@ ui<-fluidPage(
   
  )),
  
-  # Show a plot summarizing the values entered
+  # Show a series of plots summarizing the values entered
   column(4,
     h3(strong("Fig.1 电影时长 vs 评分"),align = "center"), 
     
     plotOutput("run_time_ratingPlot")),
  column(4,
     h3(strong("Fig.2 电影时长柱状图"),align = "center"), 
-    plotOutput("run_time_barPlot")
+    plotOutput("run_time_Histogram")
     
   )
   ),
@@ -67,6 +68,7 @@ ui<-fluidPage(
 
 
 server<-function(input, output) {
+  #get the web scarpping function 
   source("get_data.R",local = T)
   
   
@@ -74,12 +76,11 @@ server<-function(input, output) {
   # Reactive expression to compose a data frame containing all of the values
   movie_df <- reactive({
     
-    # Compose data frame
+    # Compose url string,and get the web scrapping data
     dates<-input$dates
     dates<-paste(dates,collapse = ",")
     url<-sprintf("http://www.imdb.com/search/title?count=%d&release_date=%s&title_type=feature",input$integer,dates)
     data<-get_response(url)
-    #data_chosen<-data[grep("Drama",input$genre),]
   })
   isFacet<-reactive({
     #facet<-switch(input$isFacet,"yes"="是",
@@ -87,10 +88,16 @@ server<-function(input, output) {
     facet<-input$isFacet
   })
   
-  # Show the values using an HTML plot
-  #output$value <- renderPrint({dateRange() })
-  
+  #compose the run_time vs rating plot 
   output$run_time_ratingPlot <- reactivePlot(function() {
+    #build a linear regression model
+    model1<-lm(run_time~rating,data = movie_df())
+    l <- list(r2 = format(summary(model1)$r.squared, digits = 4),
+              p_value = format(summary(model1)$coefficients[2,4], digits = 4))
+    #create the R2 and p_value expression
+    eq <- substitute(italic(R)^2~"="~r2~","~italic(P)~"="~p_value, l)
+    
+  
     p<-ggplot(data=movie_df(),aes(x=run_time,y=rating))+
                      xlab("电影时长（分钟）")+ylab("评分")
     if(isFacet()=="yes"){
@@ -99,36 +106,57 @@ server<-function(input, output) {
     }
     else {
       p<-p+geom_point(aes(size=votes,color=genre))+geom_smooth(method = "lm")
+      #get the R2 and p_value to show at certain spot on the plot
+      p<-p+geom_text(aes(x = 150, y = 6, label = as.character(as.expression(eq))), parse = TRUE)
     }
     print(p)
   })
-  
-  output$run_time_barPlot <- reactivePlot(function() {
+  #compose the run_time histogram
+  output$run_time_Histogram <- reactivePlot(function() {
    p<-qplot(data =movie_df(),run_time,fill = genre,bins = 30,xlab = "电影时长（分钟）",
             ylab = "频数") 
     
     print(p)
   })
+  #compose the rating histogram
   output$ratingHistogram<-reactivePlot(function() {
     p1<-ggplot(data=movie_df(),aes(rating))+geom_histogram(bins=10,aes(fill=genre))+
       facet_wrap(~year,ncol = 6)+xlab("评分")+ylab("频数")
     print(p1)
   })
+  #compose the votes vs rating scatter plot
   output$vote_rating<-reactivePlot(function() {
+    #build a linear regression model
+    model2<-lm(votes~rating,data = movie_df())
+    l <- list(r2 = format(summary(model2)$r.squared, digits = 4),
+              p_value = format(summary(model2)$coefficients[2,4], digits = 4))
+    eq <- substitute(italic(R)^2~"="~r2~","~italic(P)~"="~p_value, l)
+    
     p2<-ggplot(data = movie_df(),aes(x=votes,y = rating))+geom_point(size=5,aes(color=genre))+
       geom_smooth(method = "lm")+xlab("投票")+ylab("评分")
+    p2<-p2+geom_text(aes(x = 4e+05, y = 6, label = as.character(as.expression(eq))), parse = TRUE)
     print(p2)
   })
+  #compose the vote histogram
   output$voteHistogram<-reactivePlot(function (){
     p3<-ggplot(data=movie_df(),aes(votes))+geom_histogram(bins=10,aes(fill=genre))+
       facet_wrap(~year,ncol = 6)+xlab("投票")+ylab("频数")
     print(p3)
   })
+  #compose the gross_box vs rating scatter plot with lm model
   output$box_rating<-reactivePlot(function() {
+    #build a linear regression model
+    model3<-lm(gross_box~rating,data = movie_df())
+    l <- list(r2 = format(summary(model3)$r.squared, digits = 4),
+              p_value = format(summary(model3)$coefficients[2,4], digits = 4))
+    eq <- substitute(italic(R)^2~"="~r2~","~italic(P)~"="~p_value, l)
+    
     p2<-ggplot(data = movie_df(),aes(x=gross_box,y = rating))+geom_point(size=5,aes(color=genre))+
       geom_smooth(method = "lm")+xlab("北美票房(万美元）")+ylab("评分")
+    p2<-p2+geom_text(aes(x = 500, y = 6, label = as.character(as.expression(eq))), parse = TRUE)
     print(p2)
   })
+  #compose the gross_box histogram with year facet
   output$boxHistogram<-reactivePlot(function (){
     p3<-ggplot(data=movie_df(),aes(gross_box))+geom_histogram(bins=10,aes(fill=genre))+
       facet_wrap(~year,ncol = 6)+xlab("北美票房（万美元）")+ylab("频数")
