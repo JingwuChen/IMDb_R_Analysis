@@ -4,32 +4,64 @@ require(ggplot2)
 ui<-fluidPage(
   
   #  Application title
-  headerPanel("IDMb数据爬虫分析演示"),
+  titlePanel("IDMb数据爬虫分析演示"),
   
   # Sidebar with sliders that demonstrate various available options
-  
-  sidebarPanel(
-    sliderInput("integer", "Number of films including:", 
-                min=50, max=1000, value=100),
+  fluidRow(
+    column(4,
+  wellPanel(
+    sliderInput("integer", "数据集包含的电影数(从IMDb排名第一倒着数):", 
+                min=50, max=5000, value=100),
     br(),
-    radioButtons("isFacet","电影时长 vs 评分分面",list("是"="yes","否"="no"
+    radioButtons("isFacet","Fig.1 电影时长 vs 评分分面",list("否"="no","是"="yes"
       
     )),
+    br(),
     # set a date range for you to choose 
-    dateRangeInput("dates", label = "电影日期范围",start = "2015-01-01",end = Sys.Date(),language="zh-CN")
+    dateRangeInput("dates", label = "电影发行日期范围",start = "2015-01-01",end = Sys.Date(),language="zh-CN")
    
   
- ),
+ )),
+ 
   # Show a plot summarizing the values entered
-  mainPanel(
-    #verbatimTextOutput("value"), 
-    h3(strong("电影时长 vs 评分"),align = "center"), 
+  column(4,
+    h3(strong("Fig.1 电影时长 vs 评分"),align = "center"), 
     
-    plotOutput("run_time_ratingPlot") ,
-    h3(strong("电影时长柱状图"),align = "center"), 
+    plotOutput("run_time_ratingPlot")),
+ column(4,
+    h3(strong("Fig.2 电影时长柱状图"),align = "center"), 
     plotOutput("run_time_barPlot")
     
   )
+  ),
+ hr(),
+ fluidRow(
+   column(4,
+  h3(strong("Fig.4 投票 vs 评分"),align = "center"),
+   plotOutput("vote_rating")),
+   column(8,
+          h3(strong("Fig.5 投票直方图"),align = "center"),
+          plotOutput("voteHistogram")
+          )
+   
+ ),
+ 
+ hr(),
+ fluidRow(
+   h3(strong("Fig.6 评分直方图"),align = "center"),
+   
+   plotOutput("ratingHistogram")
+ ),
+ hr(),
+ fluidRow(
+   column(4,
+          h3(strong("Fig.7 票房 vs 评分"),align = "center"),
+          plotOutput("box_rating")),
+   column(8,
+          h3(strong("Fig.8 票房直方图"),align = "center"),
+          plotOutput("boxHistogram")
+   )
+ )
 )
 
 
@@ -66,7 +98,7 @@ server<-function(input, output) {
     p<-p+facet_grid(.~genre)
     }
     else {
-      p<-p+geom_point(aes(size=votes,color=genre))
+      p<-p+geom_point(aes(size=votes,color=genre))+geom_smooth(method = "lm")
     }
     print(p)
   })
@@ -76,6 +108,31 @@ server<-function(input, output) {
             ylab = "频数") 
     
     print(p)
+  })
+  output$ratingHistogram<-reactivePlot(function() {
+    p1<-ggplot(data=movie_df(),aes(rating))+geom_histogram(bins=10,aes(fill=genre))+
+      facet_wrap(~year,ncol = 6)+xlab("评分")+ylab("频数")
+    print(p1)
+  })
+  output$vote_rating<-reactivePlot(function() {
+    p2<-ggplot(data = movie_df(),aes(x=votes,y = rating))+geom_point(size=5,aes(color=genre))+
+      geom_smooth(method = "lm")+xlab("投票")+ylab("评分")
+    print(p2)
+  })
+  output$voteHistogram<-reactivePlot(function (){
+    p3<-ggplot(data=movie_df(),aes(votes))+geom_histogram(bins=10,aes(fill=genre))+
+      facet_wrap(~year,ncol = 6)+xlab("投票")+ylab("频数")
+    print(p3)
+  })
+  output$box_rating<-reactivePlot(function() {
+    p2<-ggplot(data = movie_df(),aes(x=gross_box,y = rating))+geom_point(size=5,aes(color=genre))+
+      geom_smooth(method = "lm")+xlab("北美票房(万美元）")+ylab("评分")
+    print(p2)
+  })
+  output$boxHistogram<-reactivePlot(function (){
+    p3<-ggplot(data=movie_df(),aes(gross_box))+geom_histogram(bins=10,aes(fill=genre))+
+      facet_wrap(~year,ncol = 6)+xlab("北美票房（万美元）")+ylab("频数")
+    print(p3)
   })
   }
 
