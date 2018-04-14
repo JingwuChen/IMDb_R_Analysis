@@ -102,6 +102,7 @@ server<-function(input, output) {
   
     p<-ggplot(data=movie_df(),aes(x=run_time,y=rating))+
                      xlab("电影时长（分钟）")+ylab("评分")
+    p<-p + theme(axis.title=element_text(size=14),text=element_text(family="SimHei"))
     if(isFacet()=="yes"){
     p<-p+geom_point(aes(size=votes))
     p<-p+facet_grid(.~genre)
@@ -117,6 +118,7 @@ server<-function(input, output) {
   output$run_time_Histogram <- reactivePlot(function() {
    p<-qplot(data =movie_df(),run_time,fill = genre,bins = 30,xlab = "电影时长（分钟）",
             ylab = "频数") 
+   p<-p + theme(axis.title=element_text(size=14),text=element_text(family="SimHei"))
     
     print(p)
   })
@@ -124,6 +126,7 @@ server<-function(input, output) {
   output$ratingHistogram<-reactivePlot(function() {
     p1<-ggplot(data=movie_df(),aes(rating))+geom_histogram(bins=10,aes(fill=genre))+
       facet_wrap(~year,ncol = 6)+xlab("评分")+ylab("频数")
+    p1<-p1 + theme(axis.title=element_text(size=14),text=element_text(family="SimHei"))
     print(p1)
   })
   #compose the votes vs rating scatter plot
@@ -137,12 +140,14 @@ server<-function(input, output) {
     p2<-ggplot(data = movie_df(),aes(x=votes,y = rating))+geom_point(size=5,aes(color=genre))+
       geom_smooth(method = "lm")+xlab("投票")+ylab("评分")
     p2<-p2+geom_text(aes(x = 4e+05, y = 6, label = as.character(as.expression(eq))), parse = TRUE)
+    p2<-p2 + theme(axis.title=element_text(size=14),text=element_text(family="SimHei"))
     print(p2)
   })
   #compose the vote histogram
   output$voteHistogram<-reactivePlot(function (){
     p3<-ggplot(data=movie_df(),aes(votes))+geom_histogram(bins=10,aes(fill=genre))+
       facet_wrap(~year,ncol = 6)+xlab("投票")+ylab("频数")
+    p3<-p3 + theme(axis.title=element_text(size=14),text=element_text(family="SimHei"))
     print(p3)
   })
   #compose the gross_box vs rating scatter plot with lm model
@@ -156,12 +161,14 @@ server<-function(input, output) {
     p2<-ggplot(data = movie_df(),aes(x=gross_box,y = rating))+geom_point(size=5,aes(color=genre))+
       geom_smooth(method = "lm")+xlab("北美票房(万美元）")+ylab("评分")
     p2<-p2+geom_text(aes(x = 500, y = 6, label = as.character(as.expression(eq))), parse = TRUE)
+    p2<-p2 + theme(axis.title=element_text(size=14),text=element_text(family="SimHei"))
     print(p2)
   })
   #compose the gross_box histogram with year facet
   output$boxHistogram<-reactivePlot(function (){
     p3<-ggplot(data=movie_df(),aes(gross_box))+geom_histogram(bins=10,aes(fill=genre))+
       facet_wrap(~year,ncol = 6)+xlab("北美票房（万美元）")+ylab("频数")
+    p3<-p3 + theme(axis.title=element_text(size=14),text=element_text(family="SimHei"))
     print(p3)
   })
   }
