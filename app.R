@@ -1,13 +1,34 @@
 require(shiny)
 require(ggplot2)
-
+require(psych)
 ui<-fluidPage(
   
   #  Application title
-  titlePanel("IDMb数据爬虫分析演示"),
-  actionButton("github", "github", icon =icon("github", class = "fab fa-github fa-lg", 
-                                              lib = "font-awesome"),onclick ="location.href='https://github.com/JingwuChen/IMDb_R_Analysis';"),
-  
+  titlePanel("IDMb数据分析"),
+  fluidRow(
+    
+    pre(
+      h2("1.电影时长和评分"),
+    div("这是我想要的")
+    )
+    
+    
+  ),
+  br(),
+  hr(),
+  fluidRow(
+    column(4,
+           h3(strong("Table1 电影数据中的描述性统计"),align = "center"), 
+           
+           verbatimTextOutput("summary")
+           ),
+    column(8,
+           h3(strong("Table2 电影数据根据年份分组描述性统计"),align = "center"), 
+           
+           verbatimTextOutput("summary_by_year")
+    )
+  ),
+  hr(),
   #use the fluidPage to build a bootstrap layout
   fluidRow(
     column(4,
@@ -38,6 +59,7 @@ ui<-fluidPage(
   )
   ),
  hr(),
+ 
  fluidRow(
    column(4,
   h3(strong("Fig.4 投票 vs 评分"),align = "center"),
@@ -50,12 +72,15 @@ ui<-fluidPage(
  ),
  
  hr(),
+ 
  fluidRow(
    h3(strong("Fig.6 评分直方图"),align = "center"),
    
    plotOutput("ratingHistogram")
  ),
+ 
  hr(),
+ 
  fluidRow(
    column(4,
           h3(strong("Fig.7 票房 vs 评分"),align = "center"),
@@ -89,6 +114,17 @@ server<-function(input, output) {
                   #"no"="否","是")
     facet<-input$isFacet
   })
+  #compose the total summary
+  var<-c("run_time","rating","votes","gross_box")
+  output$summary<-renderPrint(
+  
+   psych::describe(movie_df()[var])
+  )
+  #compose the summary by year
+  output$summary_by_year<-renderPrint(
+    
+    psych::describe.by(movie_df()[var],movie_df()$year)
+  )
   
   #compose the run_time vs rating plot 
   output$run_time_ratingPlot <- reactivePlot(function() {
